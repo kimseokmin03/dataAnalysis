@@ -36,20 +36,17 @@
 ## 데이터
 
 **자산 (Yahoo Finance)**  
-QQQ(기술주), XLP(방어주), XLY(민감주), GC=F(금), BTC-USD, 부동산 관련 시계열 등
+QQQ(기술주), XLP(방어주), XLY(민감주), GC=F(금), BTC-USD, 부동산 관련 시계열 등 - 종가, 일일 기준 병합
 
 **거시 지표 (FRED)**  
-기준금리(FEDFUNDS), CPI, GDP, 고용·심리·원자재·달러 인덱스 등
-
-월 단위로 맞춰 병합한 뒤 `data/`에 저장해 두었습니다.  
-대용량 raw(`finance_data.csv`)는 용량 때문에 git에 포함하지 않았습니다.
+기준금리(FEDFUNDS), CPI, GDP, 고용·심리·원자재·달러 인덱스 등 - 월 단위로 맞춰 병합
 
 ## 분석 흐름
 
 1. **수집** — yfinance / FRED로 기간별 시계열 확보  
 2. **EDA** — 금리 인하기를 구간으로 표시하고 자산 추이 비교  
 3. **상관** — 지표 ↔ 자산 수익률 heatmap  
-4. **모델** — 거시 지표 → 다음 달 자산 수익률 (Ridge / LightGBM)
+4. **모델** — 거시 지표 → 다음 달 자산 수익률 (Ridge / LightGBM / RandomForest)
 
 ### ML 실험 메모
 
@@ -59,40 +56,12 @@ QQQ(기술주), XLP(방어주), XLY(민감주), GC=F(금), BTC-USD, 부동산 �
 
 해석: 월별 샘플이 적고, 거시 정보가 이미 가격에 상당 부분 반영되어 있어 **단기 수익률 맞추기는 어렵다**에 가까움
 
-## 실행 방법
-
-```bash
-# 1. 환경
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-pip install -r requirements.txt
-
-# 2. (선택) 데이터 재수집 시 FRED 키
-copy .env.example .env
-# .env에 FRED_API_KEY 입력
-
-# 3. 노트북
-jupyter notebook
-# notebooks/ 아래 01 → 06 순서 권장
-```
-
-이미 `data/`에 CSV가 있으면 **04~06**만으로도 상관·모델 재현이 가능합니다.  
-01~03은 API로 다시 받을 때 사용합니다.
-
 ## 스택
 
 Python, pandas, numpy, matplotlib, seaborn, yfinance, fredapi, scikit-learn, LightGBM, Jupyter
 
 ## 한계
 
-- 월 데이터라 표본이 작음
-- 인하기 구간 정의에 주관이 들어감
-- 거래비용·레짐 전환 타이밍은 다루지 않음
-- 예측 모델은 탐색용이며 실거래 신호가 아님
-
-## 다음에 해볼 수 있는 것
-
-- 인하기 안에서도 **집중하락기 vs 회복기** 수익률 표로 정리
-- 동시 상관뿐 아니라 **lag 1~3** 상관 비교
-- 예측 대신 **국면 분류**(인하기 여부) 문제로 바꾸기
+- 고빈도 데이터가 아니라 거시 공표 주기에 맞춰 데이터 수가 적음
+- 상관분석에선 뚜렷한 관계는 공포지수 등 일부
+- 머신러닝 다음달 예측의 R^2값이 대체로 음수 --> 예측 신호로는 부족
